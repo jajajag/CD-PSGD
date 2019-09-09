@@ -10,8 +10,9 @@ public:
     void train(int T, bool verbose = false);
     void train_batch(int t);
     void communicate();
-    Eigen::VectorXd predict_proba();
-    double log_loss();
+    Eigen::VectorXd communicate_reduce();
+    Eigen::VectorXd predict_proba(Eigen::VectorXd x_value_avg);
+    double log_loss(Eigen::VectorXd x_value_avg);
 
 private:
     int world_size;

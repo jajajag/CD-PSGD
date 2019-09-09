@@ -41,7 +41,7 @@ ECD_SGD::~ECD_SGD() {
 }
 
 void ECD_SGD::train(int T, bool verbose) {
-    if (verbose) {
+    if (verbose && world_rank == 0) {
         std::cout << "Rank Iteration Loss" << std::endl;
     }
     /* for t = 1,2,...,T do */
@@ -49,9 +49,10 @@ void ECD_SGD::train(int T, bool verbose) {
         train_batch(t);
         //std::cout << x_value.transpose() << std::endl;
         //auto predict_labels = predict_proba();
-        if (verbose) {
+        Eigen::VectorXd x_value_avg = communicate_reduce();
+        if (verbose && world_rank == 0) {
             std::cout << world_rank << " " << t << " " << 
-                log_loss() << std::endl;
+                log_loss(x_value_avg) << std::endl;
         }
     }
 }
@@ -124,25 +125,40 @@ void ECD_SGD::communicate() {
     }
 }
 
+Eigen::VectorXd ECD_SGD::communicate_reduce() {
+    if (world_size == 1) {
+        return x_value;
+    }
+    /* Calculate the average value of x_value.  */
+    Eigen::VectorXd x_value_avg = Eigen::VectorXd::Zero(x_value.size());
+    MPI_Reduce(x_value.data(), x_value_avg.data(), x_value.size(), MPI_DOUBLE,
+            MPI_SUM, 0, MPI_COMM_WORLD);
+    x_value_avg = x_value_avg / world_size;
 
-Eigen::VectorXd ECD_SGD::predict_proba() {
+    return x_value_avg;
+}
+
+Eigen::VectorXd ECD_SGD::predict_proba(Eigen::VectorXd x_value_avg) {
     /* Use full data to compute the proba.  */
     auto full_data = data_manager->full_data();
-    Eigen::VectorXd predict_labels = sigmoid(full_data.first * x_value);
+    Eigen::VectorXd predict_labels = sigmoid(full_data.first * x_value_avg);
 
     return predict_labels;
 }
 
-double ECD_SGD::log_loss() {
+double ECD_SGD::log_loss(Eigen::VectorXd x_value_avg) {
     /* First calculate the labels. */
     auto full_data = data_manager->full_data();
-    Eigen::VectorXd predict_labels = sigmoid(full_data.first * x_value);
+    Eigen::VectorXd predict_labels = sigmoid(full_data.first * x_value_avg);
 
     /* Calculate the Log Loss:
      * loss = -((y)log(theta) + (1 - y)log(1 - theta)) / N. */
     Eigen::VectorXd ones = Eigen::VectorXd::Ones(predict_labels.size());
-    Eigen::VectorXd theta_log = predict_labels.array().log();
-    Eigen::VectorXd theta_logone = (ones - predict_labels).array().log();
+    /* Add noise to avoid inf/-inf. */
+    Eigen::VectorXd theta_log = (
+            predict_labels + ones * 1e-100).array().log();
+    Eigen::VectorXd theta_logone = (
+            ones - predict_labels + ones * 1e-100).array().log();
     double loss = -(full_data.second.transpose() * theta_log)(0) - \
                   ((ones - full_data.second).transpose() * theta_logone)(0);
     loss = loss / predict_labels.size();
