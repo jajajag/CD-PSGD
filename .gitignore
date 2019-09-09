@@ -1,2 +1,5 @@
 
 *.swp
+*.o
+src/a.out
+src/a.out

@@ -1,26 +1,44 @@
-#include <iostream>
-#include <fstream>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include "data_manager.hpp"
+#include "ecd_sgd.hpp"
 
-int main() {
+/* mpirun -n threads main file_name [iterations] [learning_rate] [verbose] */
+/* mpirun -n 4 main real-sim 1000 0.01 True */
+int main(int argc, char *argv[]) {
+    int iterations = 1000;
+    double learning_rate = 0.01;
     std::ifstream fp;
-    //fp.open("../datasets/real-sim_test");
-    fp.open("test.txt");
+
+    /* Setup parameters. */
+    if (argc < 2) {
+        std::cout << "Usage: mpirun -n threads main file_name iterations"
+            " learning_rate [verbose]" << std::endl;
+        return 0;
+    }
+    if (argc > 2) {
+        std::istringstream iterations_stream(argv[2]);
+        iterations_stream >> iterations;
+    }
+    if (argc > 3) {
+        std::istringstream learning_rate_stream(argv[3]);
+        learning_rate_stream >> learning_rate;
+    }
+
+    /* Initialize the model. */
+    fp.open(argv[1]);
     DataManager dm(fp);
     fp.close();
-    std::pair<Eigen::SparseMatrix<double>, std::vector<int> > ret = dm.sample(5);
-    /*
-    for (int i = 0; i < ret.first.rows(); ++i) {
-        int count = 0;
-        for (int j = 0; j < ret.first.cols(); ++j) {
-            if (ret.first.coeffRef(i, j) != 0)
-                //std::cout << ret.first.coeffRef(i, j) << std::endl;
-                //printf("%.20f\n", ret.first.coeffRef(i, j));
-                //count += 1;
-        }
-        return 0;
-        std::cout << count << " " << ret.second[i] << std::endl;
+    ECD_SGD model(&dm, learning_rate);
+
+    /* Train the model. */
+    if (argc > 4) {
+        model.train(iterations, true);
+    } else {
+        model.train(iterations, false);
     }
-     * */
+
+    return 0;
 }
