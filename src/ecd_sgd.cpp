@@ -70,7 +70,9 @@ void ECD_SGD::train_batch(int t) {
 
     /* 5. Compute the neighborhood weighted average by using the estimate
      * value of the connected neighbors. */
-    x_value = (y_value_left + y_value_right) / 2;
+    if (world_size != 1) {
+        x_value = (y_value_left + y_value_right) / 2;
+    }
 
     /* 6. Update the local model. */
     //learning_rate = learning_rate * 0.99;
