@@ -9,7 +9,7 @@
 /* mpirun -n 4 main real-sim 1000 0.01 True */
 int main(int argc, char *argv[]) {
     int iterations = 1000;
-    double learning_rate = 0.01;
+    double learning_rate = 0.1;
     std::ifstream fp;
 
     /* Setup parameters. */
