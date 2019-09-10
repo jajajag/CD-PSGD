@@ -1,9 +1,31 @@
 # ECD-PSGD
 Trivial implementation of ECD-PSGD (Extrapolation Compression Decentralized
-Parallel Stochastic Gradient Descent) for *my own* testing purpose. 
+Parallel Stochastic Gradient Descent) for **my own** testing purpose. 
+We aim at testing the properties of datasets by different parallel
+algorithms.
 
 # Usage
 
+To compile the executable file, simply run
+
+```
+make
+```
+
+in src/ folder. Then, the executable *main* file will be in the src/ folder.
+Run
+
+```
+make clean
+```
+
+The .o files will be removed and the main file will be moved to the root
+folder.
+
+```
+mpirun -n main file_name [iterations] [learning_rate] [verbose]
+```
+I use mpi to handle the communication between nodes. Thus, 
 
 # Results
 
