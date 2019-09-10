@@ -19,10 +19,10 @@ ECD_SGD::ECD_SGD(DataManager *dm, double learning_rate) {
      * iteration step length gamma, weighted matrix W, and number of total
      * iterations T.*/
     /* The value should be initialized as 0 here! */
-    x_value = Eigen::VectorXd::Ones(data_manager->num_features());
+    x_value = Eigen::VectorXd::Zero(data_manager->num_features());
     x_value_old = Eigen::VectorXd::Zero(data_manager->num_features());
-    y_value_left = Eigen::VectorXd::Ones(data_manager->num_features());
-    y_value_right = Eigen::VectorXd::Ones(data_manager->num_features());
+    y_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
+    y_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
