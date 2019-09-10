@@ -21,8 +21,8 @@ ECD_SGD::ECD_SGD(DataManager *dm, double learning_rate) {
     /* The value should be initialized as 0 here! */
     x_value = Eigen::VectorXd::Ones(data_manager->num_features());
     x_value_old = Eigen::VectorXd::Zero(data_manager->num_features());
-    y_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
-    y_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
+    y_value_left = Eigen::VectorXd::Ones(data_manager->num_features());
+    y_value_right = Eigen::VectorXd::Ones(data_manager->num_features());
     z_value = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
@@ -88,7 +88,6 @@ void ECD_SGD::train_batch(int t) {
     /* 8. Each node updates the estimate for its connected neighbors.  */
     y_value_left = (1 - 2.0 / t) * y_value_left + 2.0 / t * z_value_left;
     y_value_right = (1 - 2.0 / t) * y_value_right + 2.0 / t * z_value_right;
-
 }
 
 void ECD_SGD::communicate() {
