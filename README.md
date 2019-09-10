@@ -6,7 +6,8 @@ algorithms.
 
 # Usage
 
-To compile the executable file, simply run
+To compile the executable file, simply run (This requires the user to
+install both OpenMPI and Eigen).
 
 ```
 make
@@ -20,12 +21,17 @@ make clean
 ```
 
 The .o files will be removed and the main file will be moved to the root
-folder.
+folder. Then, run the main file by mpirun:
 
 ```
 mpirun -n main file_name [iterations] [learning_rate] [verbose]
 ```
-I use mpi to handle the communication between nodes. Thus, 
+I use mpi to handle the communication between nodes. Thus, we need to use
+mpirun instead of ./main. The file\_name is the name of the dataset. The
+file should be in LibSVM format and all negative labels should be 0 instead
+of -1. The #iteration is the number of iterations T in SGD. Simply make
+the number of arguments greater or equal to 4. The program will output the
+log\_loss of the training set on node 0 by each iteration.
 
 # Results
 
@@ -54,3 +60,15 @@ average average value of x.
 
 # Structure
 
+In this implementation, we have two classes DataManager in data\_manager.hpp
+and ECD\_SGD in ecd\_sgd.hpp.
+
+The DataManager read dataset *slowly* into an Eigen Sparse Matrix data and
+an Eigen double VectorXd labels. It can also randomly choose one sample by
+function sample() or return the full data.
+
+On the other hand, the ECD\_SGD do the main algorithm of ECD-PSGD. The class
+uses DataManager as one input. ECD\_SGD will train each batch and communicate
+with other nodes in a ring by OpenMPI. Each node will compute the y\_value
+for left and right node. The class should output 0/1 labels by probability
+and compute log\_loss for the training set in each iteration.
