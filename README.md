@@ -1,13 +1,16 @@
 # ECD-PSGD
 Trivial implementation of ECD-PSGD (Extrapolation Compression Decentralized
-Parallel Stochastic Gradient Descent) for **my own** testing purpose. 
-We aim at testing the properties of datasets by different parallel
+Parallel Stochastic Gradient Descent) and DCD-PSGD (Difference Compression
+Decentralized Parallel Stochastic Gradient Descent) for **my own** testing
+purpose. We aim at testing the properties of datasets by different parallel
 algorithms.
 
 # Usage
 
 To compile the executable file, simply run (This requires the user to
-install both OpenMPI and Eigen).
+install both OpenMPI and Eigen). This will call ECD\_PSGD. If you want to
+use DCD\_PSGD, please modify main.cpp. The PSGD works well on 1-3 threads.
+However, if you use more than 3 threads, the Log Loss may not converge.
 
 ```
 make
@@ -36,6 +39,7 @@ log\_loss of the training set on node 0 by each iteration.
 # Results
 
 The results will be posted here one the experiment is done.
+200 iterations : ![sdf](results/200 iterations.png)
 
 # Alogrithm
 The main algorithm for ECD-PSGD is in Hanlin Tang's paper
@@ -57,6 +61,15 @@ iteration t, the algorithm do similar work as:
 Because I do not implement quantization here, the z value is not compressed.
 Thus, the noise for z value is also 0. After T iterations, we compute the
 average average value of x.
+
+The main algorithm for DCD\_PSGD is similar:
+
+* Randomly choose one sample from the data.
+* Compute the stochastic gradient based on local model x.
+* Update local model by neighbors and gradient: x' = sum(x\_i) / n- gradient.
+* Compute z value: z = x' - x.
+* Update local model by compressed z: x = x + C(z).
+* Update connected neighbors: x\_i = x\_i + C(z).
 
 # Structure
 

@@ -1,10 +1,10 @@
 #include <mpi.h>
-#include "ecd_sgd.hpp"
+#include "dcd_psgd.hpp"
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
 
-ECD_SGD::ECD_SGD(DataManager *dm, double learning_rate) {
+DCD_PSGD::DCD_PSGD(DataManager *dm, double learning_rate) {
     /* Initialize MPI. */
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -21,26 +21,26 @@ ECD_SGD::ECD_SGD(DataManager *dm, double learning_rate) {
     /* The value should be initialized as 0 here! */
     x_value = Eigen::VectorXd::Zero(data_manager->num_features());
     x_value_old = Eigen::VectorXd::Zero(data_manager->num_features());
-    y_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
-    y_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
+    x_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
+    x_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value_left = Eigen::VectorXd::Zero(data_manager->num_features());
     z_value_right = Eigen::VectorXd::Zero(data_manager->num_features());
 }
 
-ECD_SGD::~ECD_SGD() {
+DCD_PSGD::~DCD_PSGD() {
     //delete data_manager;
 	x_value_old.resize(0);
 	x_value.resize(0);
-	y_value_left.resize(0);
-	y_value_right.resize(0);
+	x_value_left.resize(0);
+	x_value_right.resize(0);
 	z_value.resize(0);
 	z_value_left.resize(0);
 	z_value_right.resize(0);
     MPI_Finalize();
 }
 
-void ECD_SGD::train(int T, bool verbose) {
+void DCD_PSGD::train(int T, bool verbose) {
     if (verbose && world_rank == 0) {
         std::cout << "Rank Iteration Loss" << std::endl;
     }
@@ -57,40 +57,43 @@ void ECD_SGD::train(int T, bool verbose) {
     }
 }
 
-void ECD_SGD::train_batch(int t) {
-    /* 3. Randomly sample S from local data of the ith node. */
+void DCD_PSGD::train_batch(int t) {
+    /* 3. Randomly sample from local data of the ith node. */
     auto sample = data_manager->sample();
     Eigen::SparseMatrix<double> data = sample.first;
     double label = sample.second;
 
-    /* 4. Compute a local stochastic gradient based on x_t and current
-     * optimization variable x_t. */
-    double theta = ECD_SGD::sigmoid((data * x_value)(0));
+    /* 4. Compute local stochastic gradient using sample and current
+     * optimization variable x_value. */
+    double theta = DCD_PSGD::sigmoid((data * x_value)(0));
     /* Label here should be either 0 or 1. */
     auto delta = (theta - label) * data;
 
-    /* 5. Compute the neighborhood weighted average by using the estimate
-     * value of the connected neighbors. */
+    /* 5. Update the local model using local stochastic gradient and the
+     * weighted average of its connected neighbors’ replica (denote as
+     * x_value_left and x_value_right.  */
     if (world_size > 1) {
-        x_value = (y_value_left + y_value_right) / 2;
+        x_value = (x_value_left + x_value_right) / 2;
     }
-
-    /* 6. Update the local model. */
-    //learning_rate = learning_rate * 0.99;
-    /* The gradient should be initialized as VectorXd.  */
     x_value = x_value - Eigen::VectorXd(learning_rate * delta.transpose());
 
-    /* 7. Each node computes the z-value of itself. */
-    z_value = (1 - t / 2.0) * x_value_old + t / 2.0 * x_value;
-    communicate();
-    x_value_old = x_value;
+    /* 6. Each node computes z_value and compress z into C(z). */
+    z_value = x_value - x_value_old;
 
-    /* 8. Each node updates the estimate for its connected neighbors.  */
-    y_value_left = (1 - 2.0 / t) * y_value_left + 2.0 / t * z_value_left;
-    y_value_right = (1 - 2.0 / t) * y_value_right + 2.0 / t * z_value_right;
+    /* 7. Update the local optimization variables. 
+     * Because there is no communication loss in this case, we should
+     * overlook this line. */
+
+    /* 8. Send C(z) to its connected neighbors, and update the replicas of
+     * its connected neighbors’ values. 
+     * Send z_value to left and right nodes. */
+    communicate();
+    x_value_left += z_value_left;
+    x_value_right += z_value_right;
+    x_value_old = x_value;
 }
 
-void ECD_SGD::communicate() {
+void DCD_PSGD::communicate() {
     /* Compress z value here. */
 
     /* Send z-value to right node (Consider we are in a clock). */
@@ -123,9 +126,10 @@ void ECD_SGD::communicate() {
         MPI_Recv(z_value_right.data(), z_value.size(), MPI_DOUBLE,
                 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
-Eigen::VectorXd ECD_SGD::communicate_reduce() {
+Eigen::VectorXd DCD_PSGD::communicate_reduce() {
     if (world_size == 1) {
         return x_value;
     }
@@ -138,7 +142,7 @@ Eigen::VectorXd ECD_SGD::communicate_reduce() {
     return x_value_avg;
 }
 
-Eigen::VectorXd ECD_SGD::predict_proba(Eigen::VectorXd x_value_avg) {
+Eigen::VectorXd DCD_PSGD::predict_proba(Eigen::VectorXd x_value_avg) {
     /* Use full data to compute the proba.  */
     auto full_data = data_manager->full_data();
     Eigen::VectorXd predict_labels = sigmoid(full_data.first * x_value_avg);
@@ -146,7 +150,7 @@ Eigen::VectorXd ECD_SGD::predict_proba(Eigen::VectorXd x_value_avg) {
     return predict_labels;
 }
 
-double ECD_SGD::log_loss(Eigen::VectorXd x_value_avg) {
+double DCD_PSGD::log_loss(Eigen::VectorXd x_value_avg) {
     /* First calculate the labels. */
     auto full_data = data_manager->full_data();
     Eigen::VectorXd predict_labels = sigmoid(full_data.first * x_value_avg);

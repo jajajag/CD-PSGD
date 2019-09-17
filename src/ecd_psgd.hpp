@@ -1,12 +1,12 @@
-#ifndef _ECD_SGD
-#define _ECD_SGD
+#ifndef _ECD_PSGD
+#define _ECD_PSGD
 #include <Eigen/Dense>
 #include "data_manager.hpp"
 
-class ECD_SGD {
+class ECD_PSGD {
 public:
-    ECD_SGD(DataManager *dm, double learning_rate = 0.1);
-    ~ECD_SGD();
+    ECD_PSGD(DataManager *dm, double learning_rate = 0.1);
+    ~ECD_PSGD();
     void train(int T, bool verbose = false);
     void train_batch(int t);
     void communicate();

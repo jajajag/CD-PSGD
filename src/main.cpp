@@ -3,7 +3,8 @@
 #include <iostream>
 #include <sstream>
 #include "data_manager.hpp"
-#include "ecd_sgd.hpp"
+#include "dcd_psgd.hpp"
+#include "ecd_psgd.hpp"
 
 /* mpirun -n threads main file_name [iterations] [learning_rate] [verbose] */
 /* mpirun -n 4 main real-sim 1000 0.01 True */
@@ -31,7 +32,7 @@ int main(int argc, char *argv[]) {
     fp.open(argv[1]);
     DataManager dm(fp);
     fp.close();
-    ECD_SGD model(&dm, learning_rate);
+    ECD_PSGD model(&dm, learning_rate);
 
     /* Train the model. */
     if (argc > 4) {
