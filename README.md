@@ -41,9 +41,9 @@ log\_loss of the training set on node 0 by each iteration.
 Here are the results that show test on real-sim dataset. The first plot
 shows 1-16 threads of 200 iterations after smooth.
 <!--![200 iterations](https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png){height="50%" width="50%"} -->
-<img src="https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png" width="50%" height="50%">
+<div align=center><img src="https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png" width="50%" height="50%"></div>
 The second plot shows 1-3 threads of 10000 iterations.
-<img src="https://github.com/jajajag/ECD-PSGD/blob/master/results/10000%20iterations.png" width="50%" height="50%">
+<div align=center><img src="https://github.com/jajajag/ECD-PSGD/blob/master/results/10000%20iterations.png" width="50%" height="50%"></div>
 <!--![200 iterations](https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png){height="50%" width="50%"} -->
 
 # Alogrithm
