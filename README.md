@@ -38,8 +38,11 @@ log\_loss of the training set on node 0 by each iteration.
 
 # Results
 
-The results will be posted here one the experiment is done.
-200 iterations : ![sdf](results/200 iterations.png)
+Here are the results that show test on real-sim dataset. The first plot
+shows 1-16 threads of 200 iterations after smooth.
+![200 iterations](https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png)
+The second plot shows 1-3 threads of 10000 iterations.
+![10000 iterations](https://github.com/jajajag/ECD-PSGD/blob/master/results/10000%20iterations.png)
 
 # Alogrithm
 The main algorithm for ECD-PSGD is in Hanlin Tang's paper
@@ -74,14 +77,17 @@ The main algorithm for DCD\_PSGD is similar:
 # Structure
 
 In this implementation, we have two classes DataManager in data\_manager.hpp
-and ECD\_SGD in ecd\_sgd.hpp.
+and ECD\_PSGD in ecd\_psgd.hpp and DCD\_PSGD in dcd\_psgd.hpp. They should
+be inherited from one base class PSGD and implement same virtual methods.
+But I do not want to redo the process.
 
 The DataManager read dataset *slowly* into an Eigen Sparse Matrix data and
 an Eigen double VectorXd labels. It can also randomly choose one sample by
 function sample() or return the full data.
 
-On the other hand, the ECD\_SGD do the main algorithm of ECD-PSGD. The class
-uses DataManager as one input. ECD\_SGD will train each batch and communicate
+On the other hand, the ECD\_PSGD do the main algorithm of ECD-PSGD. The
+class uses DataManager as one input. ECD\_PSGD will train each batch and
+communicate
 with other nodes in a ring by OpenMPI. Each node will compute the y\_value
 for left and right node. The class should output 0/1 labels by probability
 and compute log\_loss for the training set in each iteration.
