@@ -40,9 +40,9 @@ log\_loss of the training set on node 0 by each iteration.
 
 Here are the results that show test on real-sim dataset. The first plot
 shows 1-16 threads of 200 iterations after smooth.
-![200 iterations](https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png)
+<img src="https://github.com/jajajag/ECD-PSGD/blob/master/results/200%20iterations.png" width=0.5 height=0.5 alt="200 iterations">
 The second plot shows 1-3 threads of 10000 iterations.
-![10000 iterations](https://github.com/jajajag/ECD-PSGD/blob/master/results/10000%20iterations.png)
+<img src="https://github.com/jajajag/ECD-PSGD/blob/master/results/10000%20iterations.png" width=0.5 height=0.5 alt="10000 iterations">
 
 # Alogrithm
 The main algorithm for ECD-PSGD is in Hanlin Tang's paper
