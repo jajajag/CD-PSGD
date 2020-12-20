@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include "data_manager.hpp"
-#include "dcd_psgd.hpp"
 #include "ecd_psgd.hpp"
 
 /* mpirun -n threads main file_name [iterations] [learning_rate] [verbose] */

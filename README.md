@@ -1,15 +1,13 @@
 # ECD-PSGD
 Trivial implementation of ECD-PSGD (Extrapolation Compression Decentralized
-Parallel Stochastic Gradient Descent) and DCD-PSGD (Difference Compression
-Decentralized Parallel Stochastic Gradient Descent) for **my own** testing
+Parallel Stochastic Gradient Descent) for **my own** testing
 purpose. We aim at testing the properties of datasets by different parallel
 algorithms.
 
 # Usage
 
 To compile the executable file, simply run (This requires the user to
-install both OpenMPI and Eigen). This will call ECD\_PSGD. If you want to
-use DCD\_PSGD, please modify main.cpp. The PSGD works well on 1-3 threads.
+install both OpenMPI and Eigen). This will call ECD\_PSGD. The PSGD works well on 1-3 threads.
 However, if you use more than 3 threads, the Log Loss may not converge.
 
 ```
@@ -67,19 +65,10 @@ Because I do not implement quantization here, the z value is not compressed.
 Thus, the noise for z value is also 0. After T iterations, we compute the
 average average value of x.
 
-The main algorithm for DCD\_PSGD is similar:
-
-* Randomly choose one sample from the data.
-* Compute the stochastic gradient based on local model x.
-* Update local model by neighbors and gradient: x' = sum(x\_i) / n- gradient.
-* Compute z value: z = x' - x.
-* Update local model by compressed z: x = x + C(z).
-* Update connected neighbors: x\_i = x\_i + C(z).
-
 # Structure
 
 In this implementation, we have two classes DataManager in data\_manager.hpp
-and ECD\_PSGD in ecd\_psgd.hpp and DCD\_PSGD in dcd\_psgd.hpp. They should
+and ECD\_PSGD in ecd\_psgd.hpp. They should
 be inherited from one base class PSGD and implement same virtual methods.
 But I do not want to redo the process.
 
